@@ -1,0 +1,254 @@
+
+if [ $stage -le 6 ]; then
+
+	lda_dim=$([ 200 -le $ivector_dim ] && echo "150" || echo "$ivector_dim")
+
+	# This script uses LDA and PLDA to decrease the dimensionality 
+	local/lda_scoring.sh --lda-dim $lda_dim --use-existing-models false \
+						 --covar_factor 0.0 \
+			data/sre data/sre_train data/sre_test \
+			$sre_path $sre_train_path $sre_test_path $trials \
+			exp/ivector_score/core_lda$ivector_dim
+
+	local/score_recording.sh --lda-dim $lda_dim $trials $trials_female $trials_male exp/ivector_score/core_lda$ivector_dim
+
+	# # 10sec
+	# local/lda_scoring.sh --lda-dim $lda_dim --use-existing-models true data/sre data/sre_10sec_train data/sre_10sec_test \
+	# 		$sre_path $sre_10sec_train_path $sre_10sec_test_path $trials_10sec \
+	# 		exp/ivector_score/10sec_lda$ivector_dim
+ 
+	# local/score_recording.sh --lda-dim $lda_dim $trials_10sec  exp/ivector_score/10sec_lda$ivector_dim
+
+	# # core-10sec
+	# local/lda_scoring.sh --lda-dim $lda_dim --use-existing-models true data/sre data/sre_core_10sec_train data/sre_core_10sec_test \
+	# 		$sre_path $sre_core_10sec_train_path $sre_core_10sec_test_path $trials_core_10sec \
+	# 		exp/ivector_score/core_10sec_lda$ivector_dim
+ 
+	# local/score_recording.sh --lda-dim $lda_dim $trials_core_10sec exp/ivector_score/core_10sec_lda$ivector_dim
+
+	# # 8conv-10sec
+	# local/lda_scoring.sh --lda-dim $lda_dim --use-existing-models true data/sre data/sre_8conv_10sec_train data/sre_8conv_10sec_test \
+	# 		$sre_path $sre_8conv_10sec_train_path $sre_8conv_10sec_test_path $trials_8conv_10sec \
+	# 		exp/ivector_score/8conv_10sec_lda$ivector_dim
+ 
+	# local/score_recording.sh --lda-dim $lda_dim $trials_8conv_10sec exp/ivector_score/8conv_10sec_lda$ivector_dim
+
+
+	# # 8conv-core
+	# local/lda_scoring.sh --lda-dim $lda_dim --use-existing-models true data/sre data/sre_8conv_core_train data/sre_8conv_core_test \
+	# 		$sre_path $sre_8conv_core_train_path $sre_8conv_core_test_path $trials_8conv_core \
+	# 		exp/ivector_score/8conv_core_lda$ivector_dim
+ 
+	# local/score_recording.sh --lda-dim $lda_dim $trials_8conv_core exp/ivector_score/8conv_core_lda$ivector_dim
+fi
+# female: 3.105; male: 3.81
+#  DNN-UBM EER
+# total: 3.459.  --lda :150
+
+# 0.1
+# female: 3.051; male: 3.405
+#  DNN-UBM EER
+# total: 3.18.  --lda :150
+
+
+if [ $stage -le 7 ]; then
+
+	lda_dim=$([ 200 -le $ivector_dim ] && echo "150" || echo "$ivector_dim")
+
+	# This script uses LDA and PLDA to decrease the dimnsionality 
+	local/lclda_scoring.sh --lda-dim $lda_dim --beta 0.6 --use-existing-models false \
+				--covar_factor 0.0 \
+			data/sre data/sre_train data/sre_test \
+			$sre_path $sre_train_path $sre_test_path $trials \
+			exp/ivector_score/core_lclda$ivector_dim
+
+	local/score_recording.sh --lda-dim $lda_dim $trials $trials_female $trials_male exp/ivector_score/core_lclda$ivector_dim
+
+
+	# # 10sec
+	# local/lclda_scoring.sh --lda-dim $lda_dim --use-existing-models true data/sre data/sre_10sec_train data/sre_10sec_test \
+	# 		$sre_path $sre_10sec_train_path $sre_10sec_test_path $trials_10sec \
+	# 		exp/ivector_score/10sec_lclda$ivector_dim
+ 
+	# local/score_recording.sh --lda-dim $lda_dim $trials_10sec  exp/ivector_score/10sec_lclda$ivector_dim
+
+	# # core-10sec
+	# local/lclda_scoring.sh --lda-dim $lda_dim --use-existing-models true data/sre data/sre_core_10sec_train data/sre_core_10sec_test \
+	# 		$sre_path $sre_core_10sec_train_path $sre_core_10sec_test_path $trials_core_10sec \
+	# 		exp/ivector_score/core_10sec_lclda$ivector_dim
+ 
+	# local/score_recording.sh --lda-dim $lda_dim $trials_core_10sec exp/ivector_score/core_10sec_lclda$ivector_dim
+
+	# # 8conv-10sec
+	# local/lclda_scoring.sh --lda-dim $lda_dim --use-existing-models true data/sre data/sre_8conv_10sec_train data/sre_8conv_10sec_test \
+	# 		$sre_path $sre_8conv_10sec_train_path $sre_8conv_10sec_test_path $trials_8conv_10sec \
+	# 		exp/ivector_score/8conv_10sec_lclda$ivector_dim
+ 
+	# local/score_recording.sh --lda-dim $lda_dim $trials_8conv_10sec exp/ivector_score/8conv_10sec_lclda$ivector_dim
+
+	# # 8conv-core
+	# local/lclda_scoring.sh --lda-dim $lda_dim --use-existing-models true data/sre data/sre_8conv_core_train data/sre_8conv_core_test \
+	# 		$sre_path $sre_8conv_core_train_path $sre_8conv_core_test_path $trials_8conv_core \
+	# 		exp/ivector_score/8conv_core_lclda$ivector_dim
+ 
+	# local/score_recording.sh --lda-dim $lda_dim $trials_8conv_core exp/ivector_score/8conv_core_lclda$ivector_dim
+
+
+fi
+# 0.2
+# female: 3.105; male: 3.752
+#  DNN-UBM EER
+# total: 3.445.  --lda :150
+# 0.5
+# female: 3.078; male: 3.752
+#  DNN-UBM EER
+# total: 3.431.  --lda :150
+# 0.6
+
+# 0.8
+# female: 3.078; male: 3.781
+#  DNN-UBM EER
+# total: 3.417.  --lda :150
+
+# 0.6 0.1
+# female: 2.997; male: 3.203
+#  DNN-UBM EER
+# total: 3.097.  --lda :150
+
+# 0.6 0.0
+# female: 3.078; male: 3.723
+#  DNN-UBM EER
+# total: 3.39.  --lda :150
+
+
+
+if [ $stage -le 8 ]; then
+
+	lda_dim=$([ 200 -le $ivector_dim ] && echo "150" || echo "$ivector_dim")
+
+	# This script uses LDA and PLDA to decrease the dimnsionality 
+	local/lda_lclda_scoring.sh --lda-dim $lda_dim --beta 0.6 --use-existing-models false \
+					--covar_factor 0.0 \
+			data/sre data/sre_train data/sre_test \
+			$sre_path $sre_train_path $sre_test_path $trials \
+			exp/ivector_score/core_lda_lclda$ivector_dim
+
+	local/score_recording.sh --lda-dim $lda_dim $trials $trials_female $trials_male exp/ivector_score/core_lda_lclda$ivector_dim
+
+
+	# # 10sec
+	# local/lda_lclda_scoring.sh --lda-dim $lda_dim --use-existing-models true data/sre data/sre_10sec_train data/sre_10sec_test \
+	# 		$sre_path $sre_10sec_train_path $sre_10sec_test_path $trials_10sec \
+	# 		exp/ivector_score/10sec_lda_lclda$ivector_dim
+ 
+	# local/score_recording.sh --lda-dim $lda_dim $trials_10sec  exp/ivector_score/10sec_lda_lclda$ivector_dim
+
+	# # core-10sec
+	# local/lda_lclda_scoring.sh --lda-dim $lda_dim --use-existing-models true data/sre data/sre_core_10sec_train data/sre_core_10sec_test \
+	# 		$sre_path $sre_core_10sec_train_path $sre_core_10sec_test_path $trials_core_10sec \
+	# 		exp/ivector_score/core_10sec_lda_lclda$ivector_dim
+ 
+	# local/score_recording.sh --lda-dim $lda_dim $trials_core_10sec exp/ivector_score/core_10sec_lda_lclda$ivector_dim
+
+	# # 8conv-10sec
+	# local/lda_lclda_scoring.sh --lda-dim $lda_dim --use-existing-models true data/sre data/sre_8conv_10sec_train data/sre_8conv_10sec_test \
+	# 		$sre_path $sre_8conv_10sec_train_path $sre_8conv_10sec_test_path $trials_8conv_10sec \
+	# 		exp/ivector_score/8conv_10sec_lda_lclda$ivector_dim
+ 
+	# local/score_recording.sh --lda-dim $lda_dim $trials_8conv_10sec exp/ivector_score/8conv_10sec_lda_lclda$ivector_dim
+
+	# # 8conv-core
+	# local/lda_lclda_scoring.sh --lda-dim $lda_dim --use-existing-models true data/sre data/sre_8conv_core_train data/sre_8conv_core_test \
+	# 		$sre_path $sre_8conv_core_train_path $sre_8conv_core_test_path $trials_8conv_core \
+	# 		exp/ivector_score/8conv_core_lda_lclda$ivector_dim
+ 
+	# local/score_recording.sh --lda-dim $lda_dim $trials_8conv_core exp/ivector_score/8conv_core_lda_lclda$ivector_dim
+
+
+fi
+
+
+# 0.8 0.0
+# female: 2.916; male: 3.838
+#  DNN-UBM EER
+# total: 3.404.  --lda :150
+
+
+# 0.6 0.1
+# female: 2.781; male: 3.146
+#  DNN-UBM EER
+# total: 2.943.  --lda :150
+
+# 0.6 0.0
+# female: 3.078; male: 4.069
+#  DNN-UBM EER
+# total: 3.543.  --lda :150
+exit;
+
+
+if [ $stage -le 9 ]; then
+
+	lda_dim=$([ 200 -le $ivector_dim ] && echo "200" || echo "$ivector_dim")
+
+	# Separate the i-vectors into male and female partitions and calculate
+	# i-vector means used by the scoring scripts.
+
+	# local/scoring_common.sh data/sre data/sre_train data/sre10_test \
+	#   exp/ivectors_sre$ivector_dim exp/ivectors_sre10_train$ivector_dim exp/ivectors_sre10_test$ivector_dim
+
+
+	# The commented out scripts show how to do cosine scoring with and without
+	# first reducing the i-vector dimensionality with LDA. PLDA tends to work
+	# best, so we don't focus on the scores obtained here.
+	local/cosine_scoring.sh data/sre10_train data/sre10_test \
+	 exp/ivectors_sre10_train$ivector_dim exp/ivectors_sre10_test$ivector_dim $trials exp/scores_gmm_2048_ind_pooled
+
+	# # Create gender dependent Cosine models and do scoring.
+	# local/cosine_scoring.sh data/sre10_train_female data/sre10_test_female \
+	#   exp/ivectors_sre10_train${ivector_dim}_female exp/ivectors_sre10_test${ivector_dim}_female $trials_female exp/scores_gmm_2048_dep_female
+	# local/cosine_scoring.sh data/sre10_train_male data/sre10_test_male \
+	#   exp/ivectors_sre10_train${ivector_dim}_male exp/ivectors_sre10_test${ivector_dim}_male $trials_male exp/scores_gmm_2048_dep_male
+	 
+	local/lda_scoring.sh --lda-dim $lda_dim data/sre data/sre10_train data/sre10_test \
+	 exp/ivectors_sre$ivector_dim exp/ivectors_sre10_train$ivector_dim exp/ivectors_sre10_test$ivector_dim $trials exp/scores_gmm_2048_ind_pooled
+
+ 	# local/lda_scoring.sh --use-existing-models true data/sre data/sre10_train data/sre10_test \
+	 # exp/ivectors_sre$ivector_dim exp/ivectors_sre10_train${ivector_dim}_female exp/ivectors_sre10_test${ivector_dim}_female $trials_female exp/scores_gmm_2048_ind_female
+
+ 	# local/lda_scoring.sh --use-existing-models true data/sre data/sre10_train data/sre10_test \
+	 # exp/ivectors_sre$ivector_dim exp/ivectors_sre10_train${ivector_dim}_male exp/ivectors_sre10_test${ivector_dim}_male $trials_male exp/scores_gmm_2048_ind_male
+
+	# # Create gender dependent LDA models and do scoring.
+	# local/lda_scoring.sh data/sre_female data/sre10_train_female data/sre10_test_female \
+	#   exp/ivectors_sre$ivector_dim exp/ivectors_sre10_train${ivector_dim}_female exp/ivectors_sre10_test${ivector_dim}_female $trials_female exp/scores_gmm_2048_dep_female
+	# local/lda_scoring.sh data/sre_male data/sre10_train_male data/sre10_test_male \
+	#   exp/ivectors_sre$ivector_dim exp/ivectors_sre10_train${ivector_dim}_male exp/ivectors_sre10_test${ivector_dim}_male $trials_male exp/scores_gmm_2048_dep_male
+
+
+	# # Pool the gender dependent results.
+	# mkdir -p exp/scores_gmm_2048_dep_pooled
+	# cat exp/scores_gmm_2048_dep_male/eval_scores exp/scores_gmm_2048_dep_female/eval_scores \
+	#   > exp/scores_gmm_2048_dep_pooled/eval_scores
+
+
+	# Create a gender independent PLDA model and do scoring.
+	local/plda_scoring.sh data/sre data/sre10_train data/sre10_test \
+	  exp/ivectors_sre$ivector_dim exp/ivectors_sre10_train$ivector_dim exp/ivectors_sre10_test$ivector_dim $trials exp/scores_gmm_2048_ind_pooled
+	# local/plda_scoring.sh --use-existing-models true data/sre data/sre10_train_female data/sre10_test_female \
+	#   exp/ivectors_sre$ivector_dim exp/ivectors_sre10_train${ivector_dim}_female exp/ivectors_sre10_test${ivector_dim}_female $trials_female exp/scores_gmm_2048_ind_female
+	# local/plda_scoring.sh --use-existing-models true data/sre data/sre10_train_male data/sre10_test_male \
+	#   exp/ivectors_sre$ivector_dim exp/ivectors_sre10_train${ivector_dim}_male exp/ivectors_sre10_test${ivector_dim}_male $trials_male exp/scores_gmm_2048_ind_male
+
+	# # Create gender dependent PLDA models and do scoring.
+	# local/plda_scoring.sh data/sre_female data/sre10_train_female data/sre10_test_female \
+	#   exp/ivectors_sre$ivector_dim exp/ivectors_sre10_train${ivector_dim}_female exp/ivectors_sre10_test${ivector_dim}_female $trials_female exp/scores_gmm_2048_dep_female
+	# local/plda_scoring.sh data/sre_male data/sre10_train_male data/sre10_test_male \
+	#   exp/ivectors_sre$ivector_dim exp/ivectors_sre10_train${ivector_dim}_male exp/ivectors_sre10_test${ivector_dim}_male $trials_male exp/scores_gmm_2048_dep_male
+
+	# # Pool the gender dependent results.
+	# mkdir -p exp/scores_gmm_2048_dep_pooled
+	# cat exp/scores_gmm_2048_dep_male/plda_scores exp/scores_gmm_2048_dep_female/plda_scores \
+	#   > exp/scores_gmm_2048_dep_pooled/plda_scores
+
+
+fi

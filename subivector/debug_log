@@ -1,0 +1,286 @@
+g++ -std=c++11 -I.. -isystem /project/bdda/njzheng/kaldi/tools/openfst/include -O1  -Wall -Wno-sign-compare -Wno-unused-local-typedefs -Wno-deprecated-declarations -Winit-self -DKALDI_DOUBLEPRECISION=0 -DHAVE_EXECINFO_H=1 -DHAVE_CXXABI_H -DHAVE_ATLAS -I/project/bdda/njzheng/kaldi/tools/ATLAS_headers/include -msse -msse2 -pthread -g  -fPIC -DHAVE_CUDA -I/usr/local/cuda/include -fPIC -pthread -isystem /project/bdda/njzheng/kaldi/tools/openfst/include -rdynamic   -c -o subivector-extractor.o subivector-extractor.cc
+
+=======================================================================
+1. The default set parameter should be put in the last position  
+In file included from subivector-extractor.cc:24:0:
+../subivector/subivector-extractor.h:207:10: error: default argument missing for parameter 4 of ‘double kaldi::SubIvectorExtractor::GetSubAuxf(const kaldi::SubIvectorExtractorUtteranceStats&, const kaldi::VectorBase<double>&, const kaldi::SpMatrix<double>*, const std::vector<int>&) const’
+   double GetSubAuxf(const SubIvectorExtractorUtteranceStats &utt_stats,
+          ^
+=======================================================================
+2. The default set parameter should be put in the last position  
+../subivector/subivector-extractor.h:218:10: error: default argument missing for parameter 4 of ‘double kaldi::SubIvectorExtractor::GetAcousticSubAuxf(const kaldi::SubIvectorExtractorUtteranceStats&, const kaldi::VectorBase<double>&, const kaldi::SpMatrix<double>*, const std::vector<int>&) const’
+   double GetAcousticSubAuxf(const SubIvectorExtractorUtteranceStats &utt_stats,
+          ^
+=======================================================================
+3. this is a pointer
+../subivector/subivector-extractor.h: In member function ‘void kaldi::SubIvectorExtractor::GetPriorOffsetVec(kaldi::VectorBase<double>*) const’:
+../subivector/subivector-extractor.h:197:39: error: request for member ‘prior_offset_vec_’ in ‘this’, which is of pointer type ‘const kaldi::SubIvectorExtractor* const’ (maybe you meant to use ‘->’ ?)
+     dest_offset_vec->CopyFromVec(this.prior_offset_vec_);
+                                       ^
+=======================================================================
+4. SubVector<double> with template defined as double
+subivector-extractor.cc: In member function ‘void kaldi::SubIvectorExtractor::GetSubIvectorDistribution(const kaldi::SubIvectorExtractorUtteranceStats&, kaldi::Matrix<double>&, std::vector<kaldi::SpMatrix<double> >&, const std::vector<int>&, int32) const’:
+subivector-extractor.cc:172:17: error: missing template arguments before ‘mean’
+       SubVector mean(mean_mat, i); // get i-th row of mean_mat.
+                 ^
+subivector-extractor.cc:172:17: error: expected ‘;’ before ‘mean’
+subivector-extractor.cc:174:15: error: no match for ‘operator!=’ (operand types are ‘kaldi::SpMatrix<double>’ and ‘long int’)
+       if (var != NULL) {
+               ^
+subivector-extractor.cc:179:9: error: ‘mean’ was not declared in this scope
+         mean.AddSpVec(1.0, var, linear, 0.0);
+         ^
+subivector-extractor.cc:182:9: error: ‘mean’ was not declared in this scope
+         mean.AddSpVec(1.0, quadratic, linear, 0.0);
+         ^
+subivector-extractor.cc:212:17: error: missing template arguments before ‘mean’
+       SubVector mean(mean_mat, i); // get i-th row of mean_mat.
+                 ^
+subivector-extractor.cc:212:17: error: expected ‘;’ before ‘mean’
+subivector-extractor.cc:265:7: error: ‘mean’ was not declared in this scope
+       mean.CopyFromVec(cur_mean);
+       ^
+subivector-extractor.cc:266:15: error: no match for ‘operator!=’ (operand types are ‘kaldi::SpMatrix<double>’ and ‘long int’)
+       if (var != NULL)
+               ^
+=======================================================================
+5. Use friend class is to complex in two files, just add ReadIvector() function to the class SubIvectorExtractor to read class IvectorExtractor
+  void ReadfromIvectorExtractor(std::istream &is, bool binary, int32 phone_num_);
+
+In file included from subivector-extractor.cc:23:0:
+../ivector/ivector-extractor.h: In constructor ‘kaldi::SubIvectorExtractor::SubIvectorExtractor(const kaldi::SubIvectorExtractorOptions&, const kaldi::IvectorExtractor&, int32)’:
+../ivector/ivector-extractor.h:279:34: error: ‘std::vector<kaldi::SpMatrix<double> > kaldi::IvectorExtractor::Sigma_inv_’ is protected
+   std::vector<SpMatrix<double> > Sigma_inv_;
+                                  ^
+subivector-extractor.cc:341:43: error: within this context
+     Sigma_inv_[i].CopyFromSp(totextractor.Sigma_inv_[i]);
+                                           ^
+In file included from subivector-extractor.cc:23:0:
+../ivector/ivector-extractor.h:284:10: error: ‘double kaldi::IvectorExtractor::prior_offset_’ is protected
+   double prior_offset_;
+          ^
+subivector-extractor.cc:352:32: error: within this context
+   prior_offset_ = totextractor.prior_offset_;
+                                ^
+In file included from subivector-extractor.cc:23:0:
+../ivector/ivector-extractor.h:276:32: error: ‘std::vector<kaldi::Matrix<double>, std::allocator<kaldi::Matrix<double> > > kaldi::IvectorExtractor::M_’ is protected
+   std::vector<Matrix<double> > M_;
+                                ^
+subivector-extractor.cc:366:26: error: within this context
+     M_[i] = totextractor.M_[i]; //or .CopyFromMat
+                          ^
+In file included from subivector-extractor.cc:23:0:
+../ivector/ivector-extractor.h:270:18: error: ‘kaldi::Vector<double> kaldi::IvectorExtractor::w_vec_’ is protected
+   Vector<double> w_vec_;
+                  ^
+subivector-extractor.cc:372:37: error: within this context
+     w_vec_.CopyFromVec(totextractor.w_vec_);
+                                     ^
+
+=======================================================================
+6.q_vec.AddVec(utt_stats.gamma_(i), U_.Row(i));
+
+subivector-extractor.cc: In member function ‘void kaldi::SubIvectorExtractor::GetSubIvectorDistMean(const kaldi::SubIvectorExtractorUtteranceStats&, kaldi::VectorBase<double>*, kaldi::SpMatrix<double>*, const std::vector<int>&) const’:
+subivector-extractor.cc:559:34: error: no match for ‘operator[]’ (operand types are ‘const kaldi::Vector<double>’ and ‘int32 {aka int}’)
+     q_vec.AddVec(utt_stats.gamma_[i], U_.Row(i));
+                                  ^
+=======================================================================
+7. comment int32 I = NumGauss();
+
+subivector-extractor.cc:539:9: warning: unused variable ‘I’ [-Wunused-variable]
+   int32 I = NumGauss();
+         ^
+=======================================================================
+8.   prior_offset_vec_ = offset_vec;
+
+subivector-extractor.cc: In member function ‘void kaldi::SubIvectorExtractor::TransformSubIvectors(const std::vector<kaldi::MatrixBase<double> >&, const kaldi::VectorBase<double>&, const std::vector<int>&)’:
+subivector-extractor.cc:907:3: error: ‘prior_offset_vec’ was not declared in this scope
+   prior_offset_vec = offset_vec;
+   ^
+=======================================================================
+9. std::vector<int32> ph_tri_list_; ==> Vector<int32> ph_tri_list_;
+
+subivector-extractor.cc: In constructor ‘kaldi::SubIvectorExtractorStats::SubIvectorExtractorStats(const kaldi::SubIvectorExtractor&, const kaldi::SubIvectorExtractorStatsOptions&, const kaldi::Vector<int>&)’:
+subivector-extractor.cc:1070:16: error: ‘class std::vector<int>’ has no member named ‘CopyFromVec’
+   ph_tri_list_.CopyFromVec(phone_triphone_list);
+
+=======================================================================
+10. this.phone_num_ ==> this->phone_num_               ^
+subivector-extractor.cc:1072:8: error: request for member ‘phone_num_’ in ‘this’, which is of pointer type ‘kaldi::SubIvectorExtractorStats* const’ (maybe you meant to use ‘->’ ?)
+   this.phone_num_ = ph_tri_list_.Max() + 1;
+        ^
+=======================================================================
+11. std::vector<int32> ph_tri_list_; ==> Vector<int32> ph_tri_list_;
+subivector-extractor.cc:1072:34: error: ‘class std::vector<int>’ has no member named ‘Max’
+   this.phone_num_ = ph_tri_list_.Max() + 1;
+                                  ^
+=======================================================================
+12. SubIvectorExtractorStats::CommitSubStatsForM
+
+subivector-extractor.cc: In function ‘void kaldi::CommitSubStatsForM(const kaldi::SubIvectorExtractor&, const kaldi::SubIvectorExtractorUtteranceStats&, const kaldi::Matrix<double>&, const std::vector<kaldi::SpMatrix<double> >&)’:
+subivector-extractor.cc:1127:3: error: ‘gamma_Y_lock_’ was not declared in this scope
+   gamma_Y_lock_.lock();
+   ^
+subivector-extractor.cc:1130:3: error: ‘gamma_’ was not declared in this scope
+   gamma_.AddVec(1.0, utt_stats.gamma_);
+   ^
+
+In file included from subivector-extractor.cc:24:0:
+../subivector/subivector-extractor.h:103:18: error: ‘kaldi::Vector<double> kaldi::SubIvectorExtractorUtteranceStats::gamma_’ is protected
+   Vector<double> gamma_; // zeroth-order stats (summed posteriors), dimension [I]
+                  ^
+subivector-extractor.cc:1130:32: error: within this context
+   gamma_.AddVec(1.0, utt_stats.gamma_);
+                                ^
+subivector-extractor.cc:1135:24: error: ‘ph_tri_list_’ was not declared in this scope
+     int32 phone_indx = ph_tri_list_[i];
+                        ^
+subivector-extractor.cc:1138:5: error: ‘Y_’ was not declared in this scope
+     Y_[i].AddVecVec(1.0, utt_stats.X_.Row(i),subivec_mean);
+     ^
+In file included from subivector-extractor.cc:24:0:
+../subivector/subivector-extractor.h:104:18: error: ‘kaldi::Matrix<double> kaldi::SubIvectorExtractorUtteranceStats::X_’ is protected
+   Matrix<double> X_; // first-order stats, dimension [I][D]
+                  ^
+subivector-extractor.cc:1138:36: error: within this context
+     Y_[i].AddVecVec(1.0, utt_stats.X_.Row(i),subivec_mean);
+                                    ^
+subivector-extractor.cc:1171:24: error: ‘ph_tri_list_’ was not declared in this scope
+     int32 phone_indx = ph_tri_list_[i];
+                        ^
+subivector-extractor.cc:1183:30: error: ‘R_’ was not declared in this scope
+     SubVector<double> R_row_(R_.Row(i));
+                              ^
+In file included from subivector-extractor.cc:24:0:
+../subivector/subivector-extractor.h:103:18: error: ‘kaldi::Vector<double> kaldi::SubIvectorExtractorUtteranceStats::gamma_’ is protected
+   Vector<double> gamma_; // zeroth-order stats (summed posteriors), dimension [I]
+                  ^
+subivector-extractor.cc:1184:29: error: within this context
+     R_row_.AddVec(utt_stats.gamma_(i),subivec_scatter_vec);
+                             ^
+
+=======================================================================
+13.subivector_mat_sum_.AddMat(1.0, subivec_mean_mat);
+
+subivector-extractor.cc: In member function ‘void kaldi::SubIvectorExtractorStats::CommitSubStatsForPrior(const kaldi::Matrix<double>&, const std::vector<kaldi::SpMatrix<double> >&)’:
+subivector-extractor.cc:1322:46: error: no matching function for call to ‘kaldi::Matrix<double>::AddMat(const kaldi::Matrix<double>&)’
+   subivector_mat_sum_.AddMat(subivec_mean_mat);
+                                              ^
+=======================================================================
+14. SubVector<double> ivec_mean
+subivector-extractor.cc:1322:46: note: candidate is:
+In file included from ../matrix/matrix-lib.h:27:0,
+                 from ../ivector/ivector-extractor.h:28,
+                 from subivector-extractor.cc:23:
+../matrix/kaldi-matrix.h:564:8: note: void kaldi::MatrixBase<Real>::AddMat(Real, const kaldi::MatrixBase<Real>&, kaldi::MatrixTransposeType) [with Real = double]
+   void AddMat(const Real alpha, const MatrixBase<Real> &M,
+        ^
+../matrix/kaldi-matrix.h:564:8: note:   candidate expects 3 arguments, 1 provided
+subivector-extractor.cc: In member function ‘void kaldi::SubIvectorExtractorStats::CommitSubStatsForUtterance(const kaldi::SubIvectorExtractor&, const kaldi::SubIvectorExtractorUtteranceStats&)’:
+subivector-extractor.cc:1394:17: error: missing template arguments before ‘ivec_mean’
+       SubVector ivec_mean(subivec_mean_mat, i); // get i-th row of mean_mat.
+                 ^
+subivector-extractor.cc:1394:17: error: expected ‘;’ before ‘ivec_mean’
+subivector-extractor.cc:1404:52: error: ‘ivec_mean’ was not declared in this scope
+       tot_auxf_ += extractor.GetSubAuxf(utt_stats, ivec_mean, &ivec_var,
+                                                    ^
+=======================================================================
+15. ExpectToken(is, binary, "<SubIvectorVmatScatter>");
+
+subivector-extractor.cc: In member function ‘void kaldi::SubIvectorExtractorStats::Read(std::istream&, bool, bool)’:
+subivector-extractor.cc:1624:51: error: no matching function for call to ‘WriteToken(std::istream&, bool&, const char [24])’
+   WriteToken(is, binary, "<SubIvectorVmatScatter>");
+                                                   ^
+=======================================================================
+16. TaskSequencer<SubIvectorExtractorUpdateWeightClass>
+subivector-extractor.cc:1624:51: note: candidates are:
+In file included from ../base/kaldi-common.h:37:0,
+                 from ../ivector/ivector-extractor.h:27,
+                 from subivector-extractor.cc:23:
+../base/io-funcs.h:199:6: note: void kaldi::WriteToken(std::ostream&, bool, const char*)
+ void WriteToken(std::ostream &os, bool binary, const char *token);
+      ^
+../base/io-funcs.h:199:6: note:   no known conversion for argument 1 from ‘std::istream {aka std::basic_istream<char>}’ to ‘std::ostream& {aka std::basic_ostream<char>&}’
+../base/io-funcs.h:200:6: note: void kaldi::WriteToken(std::ostream&, bool, const string&)
+ void WriteToken(std::ostream &os, bool binary, const std::string & token);
+      ^
+../base/io-funcs.h:200:6: note:   no known conversion for argument 1 from ‘std::istream {aka std::basic_istream<char>}’ to ‘std::ostream& {aka std::basic_ostream<char>&}’
+subivector-extractor.cc: In member function ‘double kaldi::SubIvectorExtractorStats::UpdateWeights(const kaldi::SubIvectorExtractorEstimationOptions&, kaldi::SubIvectorExtractor*) const’:
+subivector-extractor.cc:1977:48: error: no matching function for call to ‘kaldi::TaskSequencer<kaldi::IvectorExtractorUpdateWeightClass>::Run(kaldi::SubIvectorExtractorUpdateWeightClass*)’
+           *this, opts, i, extractor, &tot_impr));
+                                                ^
+=======================================================================
+17. extractor->TransformSubIvectors(V_vec, sum_vproj_vec,ph_tri_list_,);
+
+subivector-extractor.cc:1977:48: note: candidate is:
+In file included from subivector-extractor.cc:25:0:
+../util/kaldi-thread.h:189:8: note: void kaldi::TaskSequencer<C>::Run(C*) [with C = kaldi::IvectorExtractorUpdateWeightClass]
+   void Run(C *c) {
+        ^
+../util/kaldi-thread.h:189:8: note:   no known conversion for argument 1 from ‘kaldi::SubIvectorExtractorUpdateWeightClass*’ to ‘kaldi::IvectorExtractorUpdateWeightClass*’
+subivector-extractor.cc: In member function ‘double kaldi::SubIvectorExtractorStats::UpdatePrior(const kaldi::SubIvectorExtractorEstimationOptions&, kaldi::SubIvectorExtractor*) const’:
+subivector-extractor.cc:2169:69: error: expected primary-expression before ‘)’ token
+   extractor->TransformSubIvectors(V_vec, sum_vproj_vec,ph_tri_list_,);
+                                                                     ^
+=======================================================================
+18.ph_tri_list_(other.ph_tri_list_), phone_num_(other.phone_num_),
+subivector-extractor.cc: In copy constructor ‘kaldi::SubIvectorExtractorStats::SubIvectorExtractorStats(const kaldi::SubIvectorExtractorStats&)’:
+subivector-extractor.cc:2183:63: error: expected identifier before ‘{’ token
+     subivector_vmat_scatter_(other.subivector_vmat_scatter_), {
+                                                               ^
+make: *** [subivector-extractor.o] Error 1
+
+=======================================================================
+19.if (&var != NULL) { // the address point of var not sure
+
+subivector-extractor.cc: In member function ‘void kaldi::SubIvectorExtractor::GetSubIvectorDistribution(const kaldi::SubIvectorExtractorUtteranceStats&, kaldi::Matrix<double>&, std::vector<kaldi::SpMatrix<double> >&, const std::vector<int>&, int32) const’:
+subivector-extractor.cc:174:15: error: no match for ‘operator!=’ (operand types are ‘kaldi::SpMatrix<double>’ and ‘long int’)
+       if (var != NULL) {
+               ^
+subivector-extractor.cc:265:15: error: no match for ‘operator!=’ (operand types are ‘kaldi::SpMatrix<double>’ and ‘long int’)
+       if (var != NULL)
+               ^
+=======================================================================
+20. VectorBase<double> &offset_vec ==> Vector<double> &offset_vec,
+	std::vector<MatrixBase<double>> &T_vec,==> std::vector<Matrix<double>> &T_vec,
+subivector-extractor.cc: In member function ‘double kaldi::SubIvectorExtractorStats::UpdatePrior(const kaldi::SubIvectorExtractorEstimationOptions&, kaldi::SubIvectorExtractor*) const’:
+subivector-extractor.cc:2207:68: error: no matching function for call to ‘kaldi::SubIvectorExtractor::TransformSubIvectors(std::vector<kaldi::Matrix<double>, std::allocator<kaldi::Matrix<double> > >&, kaldi::Vector<double>&, const kaldi::Vector<int>&)’
+   extractor->TransformSubIvectors(V_vec, sum_vproj_vec,ph_tri_list_);
+
+=======================================================================
+21.These should appear in the same order as they appear in the class definition
+In file included from subivector-extractor.cc:24:0:
+../subivector/subivector-extractor.h: In copy constructor ‘kaldi::SubIvectorExtractorStats::SubIvectorExtractorStats(const kaldi::SubIvectorExtractorStats&)’:
+../subivector/subivector-extractor.h:678:20: warning: ‘kaldi::SubIvectorExtractorStats::ivector_scatter_’ will be initialized after [-Wreorder]
+   SpMatrix<double> ivector_scatter_;
+                    ^
+../subivector/subivector-extractor.h:502:17: warning:   ‘kaldi::Vector<int> kaldi::SubIvectorExtractorStats::ph_tri_list_’ [-Wreorder]
+   Vector<int32> ph_tri_list_;
+                 ^
+subivector-extractor.cc:2213:1: warning:   when initialized here [-Wreorder]
+ SubIvectorExtractorStats::SubIvectorExtractorStats (
+
+=======================================================================
+21. kaldi::Vector  do not hold for int or int32
+	return to use std::vector<int32>
+In file included from ../base/kaldi-common.h:34:0,
+                 from ../subivector/subivector-extractor.h:27,
+                 from subivector-extractor.cc:24:
+../matrix/kaldi-vector.h: In instantiation of ‘kaldi::VectorBase<Real>::VectorBase() [with Real = int]’:
+../matrix/kaldi-vector.h:393:30:   required from ‘kaldi::Vector<Real>::Vector() [with Real = int]’
+../subivector/subivector-extractor.h:461:80:   required from here
+../base/kaldi-utils.h:139:64: error: ‘Check’ is not a member of ‘KaldiCompileTimeAssert<false>’
+                 && !std::numeric_limits<F>::is_integer>::Check()
+                                                                ^
+../matrix/kaldi-vector.h:364:5: note: in expansion of macro ‘KALDI_ASSERT_IS_FLOATING_TYPE’
+     KALDI_ASSERT_IS_FLOATING_TYPE(Real);
+
+
+      for(int32 indx=0; indx < ph_tri_list_.size(); indx++)
+      {
+        if(ph_tri_list_[indx]==i)
+          triphone_index.push_back(indx);
+      }
+      
+	ph_tri_list_= phone_triphone_list;
+    this->phone_num_ = *(std::max_element(ph_tri_list_.begin(), ph_tri_list_.end())) + 1;

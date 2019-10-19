@@ -1,0 +1,81 @@
+################################################################
+
+#################################################################
+The recording of the v1/run.sh in sre10:
+
+Some key subfiles in run.sh
+1.	sid/train_diag_ubm.sh:
+	//sliding-window CMVN 
+	//voice activity detection (vad.scp) --select-voiced-frames
+
+	a.	initialize the GMM using gmm-global-init-from-feats based on all feats
+	b.	gmm-gselect: For each frame, gives a list of the n best Gaussian indices
+	c.	gmm-global-acc-stats: accumulate stats for training a diagonal-covariance GMM.
+	d.	gmm-global-est:	Estimate a diagonal-covariance GMM from the accumulated stats.
+
+output: $dir/$[$x+1].dubm: exp/diag_ubm_$num_components/x.dubm
+//dubm: diagonal ubm
+
+2.	sid/train_full_ubm.sh
+	//trains a full-covariance UBM from an existing (diagonal or full) UBM
+
+	a.	gmm-global-to-fgmm:	Convert single diagonal-covariance GMM to single full-covariance GMM.
+	b.	gmm-gselect: align each frame by doing Gaussian selection
+
+	c.	EM steps:
+		(1). fgmm-global-acc-stats: Accumulate stats for training a full-covariance GMM	
+		(2). fgmm-global-sum-accs: Sum multiple accumulated stats files for full-covariance GMM training.
+		(3). fgmm-global-est: Estimate a full-covariance GMM from the accumulated stats
+
+output: $dir/final.ubm: exp/full_ubm_$num_components/final.ubm
+
+3.	sid/train_ivector_extractor.sh:
+	//trains the i-vector extractor
+
+	a.	ivector-extractor-init: Initialize the i-vector extractor using the FGMM input
+
+	b.	gmm-gselect + fgmm-global-gselect-to-post: Given features and Gaussian-selection (gselect) information for a full-covariance GMM, output per-frame posteriors for the selected indices. 
+
+	c.	ivector-extractor-acc-stats: Accumulate stats for iVector extractor training based on the trained x.ie
+	d.	ivector-extractor-sum-accs: Sum accumulators for training of iVector extractor, one for each job, and then for all jobs
+	e.	ivector-extractor-est: Do model re-estimation of iVector extractor (this is the update phase of a single pass of E-M)
+
+
+output: $dir/final.ie: exp/extractor/final.ie
+
+4.	sid/extract_ivectors.sh:
+	//This script extracts iVectors for a set of utterances, given features and a trained iVector extractor for test train, evaluation set.
+
+	a.	gmm-gselect + fgmm-global-gselect-to-post
+	b.	ivector-extract:  Extract iVectors for utterances, using a trained iVector extractor, and features and Gaussian-level posteriors
+
+	c.	Computing mean of iVectors for each speaker and length-normalizing
+
+		1)ivector-normalize-length:Normalize length of iVectors to equal sqrt(feature-dimension)
+		
+		2)ivector-mean : averages iVectors over all the utterances of each speaker using the spk2utt file.
+
+		3)ivector-normalize-length:
+	 
+
+output: $dir/ivector.scp
+
+
+5.	
+	a. local/scoring_common.sh: Separate the i-vectors into male and female partitions and calculate i-vector means used by the scoring scripts.
+
+	b. 	local/cosine_scoring.sh: This script cosine scoring.
+		1)ivector-compute-dot-products
+	
+	c.	local/lda_scoring.sh: this script trains an LDA transform based on the training data, then applies it to the enroll and test i-vectors and does cosine scoring.
+		1) 	ivector-compute-lda: Compute an LDA matrix for iVector system. Reads in iVectors per utterance,and an utt2spk file which it uses to help work out the within-speaker and between-speaker covariance matrices.  
+		2)	ivector-compute-dot-products: Computes dot-products between iVectors. 
+		The 'trials-file' has lines of the form <key1> <key2>, e.g., 
+		32707 tkrqm_B
+
+	d.	local/plda_scoring.sh: Create a PLDA model and do scoring.
+		1)	ivector-compute-plda: Computes a Plda object from a set of iVectors.  Uses speaker information from a spk2utt file to compute within and between class variances.
+		2)	ivector-plda-scoring: Computes log-likelihood ratios for trials using PLDA model
+
+
+
